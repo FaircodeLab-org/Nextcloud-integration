@@ -5,6 +5,18 @@ app_description = "Nextcloud Integration"
 app_email = "abdullamirshadcl@gmail.com"
 app_license = "mit"
 
+
+
+doc_events = {
+    "File": {
+        "after_insert": "nextcloud_integration.file_hook.upload_attachments"
+    }
+}
+doctype_js = {
+    "File": "public/js/file.js"
+}
+
+
 # Apps
 # ------------------
 
