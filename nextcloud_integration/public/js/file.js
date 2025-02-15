@@ -125,33 +125,36 @@ frappe.ui.form.on("File", {
 
     preview_file: function (frm) {
         let $preview = "";
-
-        // Render a button for viewing the file
-        // if (frm.doc.file_url) {
-        //     $preview = `<div class="custom_nextcloud_link">
-        //         <a 
-        //             href="${frappe.utils.escape_html(frm.doc.file_url)}" 
-        //             class="btn btn-primary" 
-        //             target="_blank">
-        //             ${__("View File")}
-        //         </a>
-        //     </div>`;
-        // }
-
-        // Add dynamic image preview
+        let file_name = frm.doc.file_name || "";  // Get file name
+        let is_image = /\.(gif|jpg|jpeg|tiff|png)$/i.test(file_name); // Check file extension from file name
+    
         if (frm.doc.file_url) {
-            $preview += `<div class="custom_image_preview">
-                <img src="${frappe.utils.escape_html(frm.doc.file_url)}/download" 
-                     alt="Shared Image" 
-                     style="max-width: 100%; height: auto;">
-            </div>`;
+            if (is_image) {
+                // Display the image
+                $preview = `<div class="custom_image_preview">
+                    <img src="${frappe.utils.escape_html(frm.doc.file_url)}/download" 
+                         alt="Shared Image" 
+                         style="max-width: 100%; height: auto;">
+                </div>`;
+            } else {
+                // Display "No preview available" message
+                $preview = `<div class="custom_no_preview">
+                    <p>No preview available</p>
+                    <a href="${frappe.utils.escape_html(frm.doc.file_url)}" 
+                       class="btn btn-primary" 
+                       target="_blank">
+                        ${__("View in Nextcloud")}
+                    </a>
+                </div>`;
+            }
         }
-
+    
         if ($preview) {
             frm.toggle_display("preview", true);
             frm.get_field("preview_html").$wrapper.html($preview);
         }
     },
+    
 
     download: function (frm) {
         let file_url = frm.doc.custom_nextcloud_url;  // Ensure this is the public link, not WebDAV

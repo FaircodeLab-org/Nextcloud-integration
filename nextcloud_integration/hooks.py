@@ -16,7 +16,9 @@ doctype_js = {
     "File": "public/js/file.js"
 }
 
-
+fixtures = [
+    {"dt": "Custom Field", "filters": [["dt", "=", "File"]]}
+]
 # Apps
 # ------------------
 
