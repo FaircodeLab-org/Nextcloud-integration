@@ -9,13 +9,17 @@ app_license = "mit"
 
 doc_events = {
     "File": {
-        "after_insert": "nextcloud_integration.file_hook.upload_attachments"
+        "after_insert": "nextcloud_integration.file_hook.upload_attachments",
+        "after_delete": "nextcloud_integration.nextcloud.delete_nextcloud_file"
+    },
+    "*": {  
+        "after_delete": "nextcloud_integration.nextcloud.delete_nextcloud_folder"
     }
 }
 doctype_js = {
     "File": "public/js/file.js"
 }
-
+ 
 fixtures = [
     {"dt": "Custom Field", "filters": [["dt", "=", "File"]]}
 ]

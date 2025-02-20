@@ -128,3 +128,107 @@ def create_shareable_link(file_path, file_name, folder):
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+# def delete_nextcloud_file(file_path):
+#     print('function triggered')
+#     """Delete a file from Nextcloud using the WebDAV API."""
+#     # Construct file URL
+#     file_url = f"{NEXTCLOUD_URL}/remote.php/dav/files/{USERNAME}/{file_path}"
+    
+#     # Send DELETE request
+#     response = requests.request("DELETE", file_url, auth=(USERNAME, PASSWORD))
+    
+#     # Handle response
+#     if response.status_code == 204:
+#         return {"status": "success", "message": _("File deleted successfully.")}
+#     elif response.status_code == 404:
+#         return {"status": "error", "message": _("File not found.")}
+#     else:
+#         return {"status": "error", "message": _(f"Failed to delete file: {response.text}")}
+
+def delete_nextcloud_file(self, method=None):
+    """Delete a file from Nextcloud when a File document is deleted in ERPNext."""
+
+
+    if not NEXTCLOUD_URL or not PASSWORD:
+        msg = "❌ Nextcloud credentials are missing in site_config.json"
+        print(msg)
+        frappe.logger().error(msg)
+        return
+
+    # Get the file name from ERPNext File Doctype
+    file_name = self.custom_nextcloud_filename  # Ensure this field exists in the File Doctype
+    if not file_name:
+        msg = "❌ Error: No Nextcloud file name provided."
+        print(msg)
+        frappe.logger().error(msg)
+        return
+
+    # Determine the folder path based on "Attached To DocType" and "Attached To Name"
+    if self.attached_to_doctype and self.attached_to_name:
+        folder_name = f"{self.attached_to_doctype}/{self.attached_to_name}"
+    else:
+        folder_name = "File Uploads"  # Default folder if no attachment info
+
+    # Construct the Nextcloud file path
+    file_path = f"{folder_name}/{file_name}"  # Use the determined folder
+    file_url = f"{NEXTCLOUD_URL}/{file_path}"  # Full WebDAV URL
+
+    msg = f"📂 Attempting to delete file from: {file_url}"
+    print(msg)
+    frappe.logger().info(msg)
+
+    try:
+        response = requests.delete(file_url, auth=(USERNAME, PASSWORD))
+
+        if response.status_code == 204:
+            msg = f"✅ Successfully deleted: {file_path}"
+            print(msg)
+            frappe.logger().info(msg)
+        elif response.status_code == 404:
+            msg = f"⚠️ File not found: {file_path}"
+            print(msg)
+            frappe.logger().warning(msg)
+        else:
+            msg = f"❌ Failed to delete {file_path}: {response.text}"
+            print(msg)
+            frappe.logger().error(msg)
+
+    except Exception as e:
+        msg = f"❌ Exception while deleting Nextcloud file: {str(e)}"
+        print(msg)
+        frappe.logger().error(msg)
+
+
+def delete_nextcloud_folder(self, method=None):
+    """Delete a Nextcloud folder when a document is deleted in ERPNext."""
+
+    if not NEXTCLOUD_URL or not PASSWORD:
+        msg = "❌ Nextcloud credentials are missing in site_config.json"
+        frappe.logger().error(msg)
+        return
+
+    # Construct folder path: {DocType}/{DocName}
+    folder_path = f"{self.doctype}/{self.name}"
+    folder_url = f"{NEXTCLOUD_URL}/{folder_path}"  # WebDAV folder URL
+
+    msg = f"📁 Attempting to delete folder: {folder_url}"
+    frappe.logger().info(msg)
+
+    try:
+        response = requests.delete(folder_url, auth=(USERNAME, PASSWORD))
+
+        if response.status_code == 204:
+            msg = f"✅ Successfully deleted folder: {folder_path}"
+            frappe.logger().info(msg)
+        elif response.status_code == 404:
+            msg = f"⚠️ Folder not found: {folder_path}"
+            frappe.logger().warning(msg)
+        else:
+            msg = f"❌ Failed to delete folder {folder_path}: {response.text}"
+            frappe.logger().error(msg)
+
+    except Exception as e:
+        msg = f"❌ Exception while deleting Nextcloud folder: {str(e)}"
+        frappe.logger().error(msg)
