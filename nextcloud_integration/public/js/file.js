@@ -123,16 +123,54 @@ frappe.ui.form.on("File", {
         }
     },
 
+    // preview_file: function (frm) {
+    //     let $preview = "";
+    //     let file_name = frm.doc.file_name || "";  // Get file name
+    //     let is_image = /\.(gif|jpg|jpeg|tiff|png)$/i.test(file_name); // Check file extension from file name
+    
+    //     if (frm.doc.file_url) {
+    //         if (is_image) {
+    //             // Display the image
+    //             $preview = `<div class="custom_image_preview">
+    //                 <img src="${frappe.utils.escape_html(frm.doc.file_url)}/download" 
+    //                      alt="Shared Image" 
+    //                      style="max-width: 100%; height: auto;">
+    //             </div>`;
+    //         } else {
+    //             // Display "No preview available" message
+    //             $preview = `<div class="custom_no_preview">
+    //                 <p>No preview available</p>
+    //                 <a href="${frappe.utils.escape_html(frm.doc.file_url)}" 
+    //                    class="btn btn-primary" 
+    //                    target="_blank">
+    //                     ${__("View in Nextcloud")}
+    //                 </a>
+    //             </div>`;
+    //         }
+    //     }
+    
+    //     if ($preview) {
+    //         frm.toggle_display("preview", true);
+    //         frm.get_field("preview_html").$wrapper.html($preview);
+    //     }
+    // },
     preview_file: function (frm) {
         let $preview = "";
         let file_name = frm.doc.file_name || "";  // Get file name
-        let is_image = /\.(gif|jpg|jpeg|tiff|png)$/i.test(file_name); // Check file extension from file name
+        let file_url = frm.doc.file_url || "";   // Get file URL
+        let is_image = /\.(gif|jpg|jpeg|tiff|png)$/i.test(file_name); // Check file extension
     
-        if (frm.doc.file_url) {
+        // Check if file URL belongs to Nextcloud shared link (contains /s/)
+        let is_nextcloud_shared = file_url.includes("/s/");
+    
+        if (file_url) {
             if (is_image) {
+                // Append "/download" only for Nextcloud shared links
+                let preview_url = is_nextcloud_shared ? `${file_url}/download` : file_url;
+    
                 // Display the image
                 $preview = `<div class="custom_image_preview">
-                    <img src="${frappe.utils.escape_html(frm.doc.file_url)}/download" 
+                    <img src="${frappe.utils.escape_html(preview_url)}" 
                          alt="Shared Image" 
                          style="max-width: 100%; height: auto;">
                 </div>`;
@@ -140,7 +178,7 @@ frappe.ui.form.on("File", {
                 // Display "No preview available" message
                 $preview = `<div class="custom_no_preview">
                     <p>No preview available</p>
-                    <a href="${frappe.utils.escape_html(frm.doc.file_url)}" 
+                    <a href="${frappe.utils.escape_html(file_url)}" 
                        class="btn btn-primary" 
                        target="_blank">
                         ${__("View in Nextcloud")}
@@ -154,7 +192,6 @@ frappe.ui.form.on("File", {
             frm.get_field("preview_html").$wrapper.html($preview);
         }
     },
-    
 
     download: function (frm) {
         let file_url = frm.doc.custom_nextcloud_url;  // Ensure this is the public link, not WebDAV
